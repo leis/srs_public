@@ -931,6 +931,8 @@ class remote_user_intervention(smach.State):
                 # result should be succeeded
                 if result == "succeeded":
                     return 'completed'
+                elif result == "failed":
+                    return "failed"
                 else:
                     return "give_up"
             except rospy.ROSInterruptException:
