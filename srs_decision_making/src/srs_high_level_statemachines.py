@@ -169,16 +169,16 @@ class SRS_StateMachine(smach.StateMachine):
 #
 ####################################################################################
 class sm_srs_navigation(SRS_StateMachine):
-	
+    
     def __init__(self):    
         smach.StateMachine.__init__(self, outcomes=['succeeded', 'not_completed', 'failed', 'preempted'],
                                     input_keys=['target_base_pose','semi_autonomous_mode'])
         self.customised_initial("sm_srs_navigation")
         
         with self:
-		 	smach.StateMachine.add('SRS_NAVIGATION', sm_approach_pose_assisted(),
-					transitions={'succeeded':'succeeded', 'not_completed':'not_completed', 'failed':'failed', 'preempted':'preempted'},
-					remapping={'target_base_pose':'target_base_pose', 'semi_autonomous_mode':'semi_autonomous_mode'})
+             smach.StateMachine.add('SRS_NAVIGATION', sm_approach_pose_assisted(),
+                    transitions={'succeeded':'succeeded', 'not_completed':'not_completed', 'failed':'failed', 'preempted':'preempted'},
+                    remapping={'target_base_pose':'target_base_pose', 'semi_autonomous_mode':'semi_autonomous_mode'})
                                     
 ####################################################################################
 #Detection state machine
@@ -301,7 +301,7 @@ class sm_srs_new_grasp(SRS_StateMachine):
                 smach.StateMachine.add('SM_GRASP-assisted', sm_srs_grasp_assisted(),
                                    transitions={'succeeded':'succeeded', 'not_completed':'not_completed', 'failed':'failed','preempted':'preempted'},
                                    remapping={'target_object_name':'target_object_name',
-                                              'semi_autonomous_mode':'semi_autonomous_mode', 	
+                                              'semi_autonomous_mode':'semi_autonomous_mode',     
                                               'target_object_id':'target_object_id',
                                               'target_object':'target_object',
                                               'target_workspace_name':'target_workspace_name',

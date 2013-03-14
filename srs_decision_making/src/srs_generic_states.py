@@ -30,6 +30,8 @@ from srs_knowledge.srv import *
 from srs_knowledge.msg import *
 import util.json_parser as json_parser
 
+import srs_ui_pro.msg as echo_server_msg
+from std_msgs.msg import String
 """
 This file contains (or import) basic states for SRS high level state machines.
 
@@ -90,7 +92,7 @@ class intervention_base_pose(smach.State):
         self.pub_fb = current_task_info.pub_fb
         self.pub_fb2 = current_task_info.pub_fb2
         self.count = 0
-
+        
     def execute(self,userdata):
         
         if userdata.semi_autonomous_mode == True:
@@ -794,7 +796,7 @@ class reset_robot(smach.State):
             #    return 'failed'
 
         handle_sdh = sss.move("sdh","home")
-        #if handle_sdh.get_error_code() != 0:
+        #if handle_sdh.get_error_code() != 0:dictionary to string
         #    return 'failed'
 
 
@@ -820,6 +822,13 @@ class remote_user_intervention(smach.State):
                              input_keys=['semi_autonomous_mode'])       
         
         #self.count=0
+        
+         # values from srs_ui_pro echo_server
+        self.server_current_status = ""
+        self.server_json_feedback = ""
+        self.server_output = ""
+        self.server_json_result = ""
+        
     def execute(self,userdata):
         
         print ('CHECKING IF USER INTERVENTION IS REQUIRED')
@@ -830,14 +839,18 @@ class remote_user_intervention(smach.State):
         
         
         global current_task_info
-        
         #name of the overall task
         the_task_name = current_task_info.task_feedback.task_name 
+        
+        if not the_task_name:
+            return 'give_up'
         
         #parameter of the overall task
         the_task_parameter = current_task_info.task_feedback.task_parameter
         
         step_id = len (current_task_info.last_step_info)         
+        
+        print "### user intervention is going on..."
         
         if step_id > 0:
             #name of the current step 
@@ -851,7 +864,78 @@ class remote_user_intervention(smach.State):
         
             #parent of the object
             the_action_object_parent = current_task_info.task_feedback.action_object_parent
-        
+            
+            try:
+                print "### action client of echo server is working..."
+                client = actionlib.SimpleActionClient('srs_ui_pro/echo_server', echo_server_msg.dm_serverAction)
+                client.wait_for_server()
+                
+                goal = echo_server_msg.dm_serverGoal()
+                
+                # see the json_parser file
+                json_decoded = json.loads(current_task_info.json_parameters)
+                
+                current_tasks = json_decoded['tasks']
+                
+                # value for "exception_id" in goal
+                exception_id = 1
+                
+                # value for "time_schedule" in goal
+                time_schedule = current_tasks[0]['time_schedule']
+                
+                # value for "task" in goal
+                current_task = current_tasks[0]['task']
+                
+                # value for "deliver_destination" in goal
+                deliver_destination = current_tasks[0]['deliver_destination']
+                
+                # value for "additional_information" in goal
+                additional_information = "this is a test message"
+                
+                current_goal = {"exception_id": exception_id, "tasks": [{"time_schedule": time_schedule, "task": current_task, "deliver_destination": deliver_destination}], "additional_information": additional_information}
+                
+                 #convert current goal to json object
+                json_input = json.dumps(current_goal)
+               
+                # construct a goal
+                goal.json_input = json_input
+                
+                server_feedback = echo_server_msg.dm_serverFeedback()
+                server_result = echo_server_msg.dm_serverResult()
+                # send the goal to echo server
+                client.send_goal(goal, self.result_callback, self.active_callback, self.feedback_callback)
+                rospy.spin()
+                
+                # result format is: {"exception_id":1, "feedback_type ":"unstructured", "content":"Waiting srs_ui_pro"}
+                # to restructure the result, and publish it as current_task_info
+                #feedback = xmsg.ExecutionFeedback()
+                #current_task_info._srs_as._as.publish_feedback(result)
+                
+                #json_feedback format: {"exception_id":-1, "feedback_type ":"unstructured", "content":"Waiting srs_ui_pro"}
+                #json_result format: "{\"exception_id\":"+str(exception_id)+", \"result\":\""+result+"\"}";
+                #!!! there is an error in dm_server line _create_result() 
+                
+                _feedback = xmsg.ExecutionFeedback()
+                _feedback.current_state =  self.server_current_status + ": started"
+                _feedback.solution_required = False
+                _feedback.exceptional_case_id = exception_id
+                _feedback.json_feedback = self.server_json_feedback
+                
+                print "### _feedback is ", _feedback.json_feedback
+                
+                current_task_info._srs_as._as.publish_feedback(_feedback)
+                
+                json_decoded = json.loads(self.server_json_result)
+                result = json_decoded['result']
+                print "### result", result
+                # result should be succeeded
+                if result == "succeeded":
+                    return 'completed'
+                else:
+                    return "give_up"
+            except rospy.ROSInterruptException:
+                print "error before completion"
+                return "failed"
         else:
             #the task has not been started yet, not need for intervention
             return 'give_up'
@@ -868,11 +952,25 @@ class remote_user_intervention(smach.State):
         #
         
         
-        return 'give_up'
-    
+        #return 'give_up'
 
-def pose_to_list(userdata):
-    # userdata.target_object_name
-    poseList = ('detect', userdata.target_object_name, str(userdata.target_object_pose.pose.position.x), str(userdata.target_object_pose.pose.position.y), str(userdata.target_object_pose.pose.position.z), str(userdata.target_object_pose.pose.orientation.x), str(userdata.target_object_pose.pose.orientation.y), str(userdata.target_object_pose.pose.orientation.z), str(userdata.target_object_pose.pose.orientation.w))
+    def feedback_callback(self, server_feedback):
+        self.server_current_status = server_feedback.current_status
+        self.server_json_feedback = server_feedback.json_feedback
+        rospy.loginfo ("server_feedback.current_status is: %s", server_feedback.current_status)
+        rospy.loginfo ("server_feedback.json_feedback is: %s",server_feedback.json_feedback)
+            
+    def active_callback(self):
+        rospy.loginfo ("goal has been sent to the echo_server...")
     
-    return poseList
+    def result_callback(self,server_result):
+        self.server_output = server_result.output
+        self.server_json_result = server_result.json_result
+        rospy.loginfo ("server_result.output is: %s",server_result.output)
+        rospy.loginfo ("server_result.json_result is: %s",server_result.json_result)
+            
+    def pose_to_list(self, userdata):
+        # userdata.target_object_name
+        poseList = ('detect', userdata.target_object_name, str(userdata.target_object_pose.pose.position.x), str(userdata.target_object_pose.pose.position.y), str(userdata.target_object_pose.pose.position.z), str(userdata.target_object_pose.pose.orientation.x), str(userdata.target_object_pose.pose.orientation.y), str(userdata.target_object_pose.pose.orientation.z), str(userdata.target_object_pose.pose.orientation.w))
+        
+        return poseList
