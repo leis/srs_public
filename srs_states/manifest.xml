@@ -8,10 +8,12 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/srs_states</url>
+  
   <depend package="smach"/>
+  <depend package="smach_ros"/>
   <depend package="cob_script_server"/>
   <!--depend package="cob_2dnav"/-->
-  <!--depend package="cob_linear_nav"/-->
+
   <depend package="cob_navigation_global"/>
   <depend package="cob_linear_nav"/>
   <depend package="cob_mmcontroller"/>
@@ -28,9 +30,16 @@
   <depend package="srs_knowledge"/>
   <depend package="srs_symbolic_grounding"/>
   
+  <depend package="actionlib_msgs"/>
   
+  <depend package="tf"/>
+  <depend package="tf_conversions"/>
+  <depend package="nav_msgs"/>
+  <depend package="visualization_msgs"/>
+  <depend package="cob_arm_navigation_python"/>
+  <depend package="rospy"/>
+  <python path="${prefix}/states"/>
   
-
   <!--Start-->
   <!--Packages removed for simplifying the testing process, they will be loaded dynamicly within the states-->
   <!--depend package="srs_grasping"/-->
