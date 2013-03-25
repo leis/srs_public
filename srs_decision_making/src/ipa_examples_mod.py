@@ -4,20 +4,9 @@ roslib.load_manifest('srs_decision_making')
 #import copy
 import rospy
 import smach
-#import smach_ros
+import smach_ros
+import tf
 
-from std_msgs.msg import String, Bool, Int32
-from cob_srvs.srv import Trigger
-from math import *
-import time
-from kinematics_msgs.srv import *
-
-#import actionlib
-# ROS imports
-import roslib
-roslib.load_manifest('srs_states')
-import rospy
-import smach
 # include script server, to move the robot
 from simple_script_server import *
 sss = simple_script_server()
@@ -25,7 +14,28 @@ sss = simple_script_server()
 # msg imports
 from geometry_msgs.msg import *
 from shared_state_information import *
+from kinematics_msgs.srv import *
+from sensor_msgs.msg import *
 
+from cob_arm_navigation_python.MoveHand import *
+from cob_arm_navigation_python.MoveArm import *
+from cob_arm_navigation_python.MotionPlan import *
+
+from pr2_python import transform_listener
+from pr2_python import world_interface
+from pr2_python import hand_description
+from pr2_python import conversions
+
+from copy import deepcopy
+
+from std_msgs.msg import String, Bool, Int32
+from cob_srvs.srv import Trigger
+from math import *
+import time
+
+#import actionlib
+# ROS imports
+roslib.load_manifest('srs_states')
 
 #from gazebo.srv import *
 #import gazebo.msg as gazebo
@@ -87,6 +97,7 @@ class select_post_table_pose(smach.State):
                 return 'succeeded'
         
 
+
 class select_pose(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['got_to_next_pose', 'no_more_pose', 'failed','preempted'], 
@@ -115,7 +126,9 @@ class put_object_on_tray(smach.State):
         if True:#current_task_info.object_in_hand and not current_task_info.object_on_tray:
         
             # move object to frontside
-            handle_arm = sss.move("arm","grasp-to-tray",False)
+            #handle_arm = sss.move("arm","grasp-to-tray",False)
+            handle_arm = sss.move("arm","grasp-to-tray", False, 'planned')
+            #handle_arm = sss.move_planned("arm","grasp-to-tray", True)
             sss.sleep(2)
             sss.move("tray","up")
             handle_arm.wait()
@@ -138,7 +151,9 @@ class put_object_on_tray(smach.State):
             return 'preempted'
 
         # move arm to backside again
-        handle_arm = sss.move("arm","tray-to-folded",False)
+        #handle_arm = sss.move("arm","grasp-to-tray",False)
+        handle_arm = sss.move("arm","tray-to-folded", False, 'planned')
+        #handle_arm = sss.move_planned("arm","grasp-to-tray", False)
         sss.sleep(3)
         sss.move("sdh","home")
         handle_arm.wait()

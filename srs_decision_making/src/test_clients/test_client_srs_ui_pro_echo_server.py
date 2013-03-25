@@ -24,11 +24,16 @@ def test_client_srs_ui_pro_echo_server(json_input):
     #server_result = echo_server_msg.dm_serverResult()
     server_feedback = echo_server_msg.dm_serverFeedback()
     server_result = echo_server_msg.dm_serverResult()
-    client.send_goal(goal, result_callback, None, feedback_callback)
-    rospy.spin()
+    try:
+        client.send_goal(goal, result_callback, None, feedback_callback)
+    except rospy.ServiceException, e:
+        print "Service did not process request: %s"%str(e)
+    
+    rospy.spin()#,,,,,,,,,,,,,,,,,,
+    
 
 def feedback_callback(server_feedback):
-    if server_feedback:
+    if server_feedback.json_feedback:
         rospy.loginfo ("server_feedback is: %s", server_feedback)
         rospy.loginfo ("server_feedback.current_status is: %s", server_feedback.current_status)
         rospy.loginfo ("server_feedback.json_feedback is: %s",server_feedback.json_feedback)

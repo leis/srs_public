@@ -359,7 +359,8 @@ class SRS_DM_ACTION(object):
         #user intervention is possible or not.
         #False, DM has to make all the decision by it self
         #True, suitable client has been connected, can be relied on
-        self.temp.userdata.semi_autonomous_mode=True
+        #self.temp.userdata.semi_autonomous_mode=True
+        self.temp.userdata.semi_autonomous_mode=False
         
         
      # open the container

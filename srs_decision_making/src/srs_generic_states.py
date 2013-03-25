@@ -840,9 +840,14 @@ class remote_user_intervention(smach.State):
         
         global current_task_info
         #name of the overall task
-        the_task_name = current_task_info.task_feedback.task_name 
+        #the_task_name = current_task_info.task_feedback.task_name 
         
-        if not the_task_name:
+        #if not the_task_name:
+            #return 'give_up'
+        
+        the_task_feedback = current_task_info.task_feedback
+        
+        if not the_task_feedback:
             return 'give_up'
         
         #parameter of the overall task
@@ -939,7 +944,7 @@ class remote_user_intervention(smach.State):
                 print "error before completion"
                 return "failed"
         else:
-            #the task has not been started yet, not need for intervention
+            #the task has not been started yet, not need for intervention 
             return 'give_up'
          
                 
