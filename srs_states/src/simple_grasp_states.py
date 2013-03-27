@@ -20,7 +20,7 @@ from kinematics_msgs.srv import *
 from sensor_msgs.msg import *
 
 #this should be in manipulation_msgs
-from cob_mmcontroller.msg import *
+#from cob_mmcontroller.msg import *
 from cob_srvs.srv import *
 #from cob_mmcontroller.msg import *
 #from cob_arm_navigation.msg import *

@@ -962,20 +962,19 @@ class remote_user_intervention(smach.State):
         #return 'give_up'
 
     def feedback_callback(self, server_feedback):
-        self.server_current_status = server_feedback.current_status
+        #self.server_current_status = server_feedback.current_status
         self.server_json_feedback = server_feedback.json_feedback
-        rospy.loginfo ("server_feedback.current_status is: %s", server_feedback.current_status)
+        #rospy.loginfo ("server_feedback.current_status is: %s", server_feedback.current_status)
         rospy.loginfo ("server_feedback.json_feedback is: %s",server_feedback.json_feedback)
             
     def active_callback(self):
         rospy.loginfo ("goal has been sent to the echo_server...")
     
-    def result_callback(self,server_result):
-        self.server_output = server_result.output
+    def result_callback(self, state, server_result):
         self.server_json_result = server_result.json_result
-        rospy.loginfo ("server_result.output is: %s",server_result.output)
-        rospy.loginfo ("server_result.json_result is: %s",server_result.json_result)
-            
+        rospy.loginfo ("server_feedback.state is: %s",state)
+        rospy.loginfo ("server_feedback.result_callback is: %s",server_result.json_result)
+        
     def pose_to_list(self, userdata):
         # userdata.target_object_name
         poseList = ('detect', userdata.target_object_name, str(userdata.target_object_pose.pose.position.x), str(userdata.target_object_pose.pose.position.y), str(userdata.target_object_pose.pose.position.z), str(userdata.target_object_pose.pose.orientation.x), str(userdata.target_object_pose.pose.orientation.y), str(userdata.target_object_pose.pose.orientation.z), str(userdata.target_object_pose.pose.orientation.w))
