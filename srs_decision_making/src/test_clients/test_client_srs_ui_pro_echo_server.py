@@ -22,7 +22,7 @@ def test_client_srs_ui_pro_echo_server(json_input):
     print "###type of goal is", type(goal)
     print "###goal is", goal
     print "###goal.json_input is", goal.json_input 
-    print "###type of goal.input is", type(goal.json_input) 
+    
     #server_feedback = echo_server_msg.dm_serverFeedback()
     #server_result = echo_server_msg.dm_serverResult()
     server_feedback = echo_server_msg.dm_serverFeedback()
@@ -53,7 +53,6 @@ def result_callback(state, server_result):
         server_json_result = server_result.json_result
         json_decoded = json.loads(server_json_result)
         result = json_decoded['result']
-        print "### server_result", result
         # result should be succeeded
         if result == "succeeded":
             print  'result is completed'
@@ -68,10 +67,10 @@ if __name__ == '__main__':
     try:
         global current_task_info   
         rospy.init_node('srs_ui_pro_echo_server_client')
-        json_input = '{"exception_id":55, "tasks":[{"time_schedule":1263798000000,"task":"move","destination":{"pose2d_string":"[0 1 3.14]"}}, {"time_schedule":2222222222,"task":"move","destination":{"pose2d_string":"[0 1 3.14]"}}], "additional_information":"The robot needs the user to assist in completing the task of moving to [0 1 3.14]"}'
-        #json_input = "{\"exception_id\":33, \"tasks\":[{\"time_schedule\":1263798000000,\"task\":\"move\",\"destination\":{\"pose2d_string\":\"[0 1 3.14]\"}}, {\"time_schedule\":2222222222,\"task\":\"move\",\"destination\":{\"pose2d_string\":\"[0 1 3.14]\"}}], \"additional_information\":\"The robot needs the user to assist in completing the task of moving to [0 1 3.14]\"}"
+        #json_input = '{"exception_id":33, "tasks":[{"time_schedule":1263798000000,"task":"move","destination":{"pose2d_string":"[0 1 3.14]"}}, {"time_schedule":2222222222,"task":"move","destination":{"pose2d_string":"[0 1 3.14]"}}], "additional_information":"The robot needs the user to assist in completing the task of moving to [0 1 3.14]"}'
+        json_input = "{\"exception_id\":33, \"tasks\":[{\"time_schedule\":1263798000000,\"task\":\"move\",\"destination\":{\"pose2d_string\":\"[0 1 3.14]\"}}, {\"time_schedule\":2222222222,\"task\":\"move\",\"destination\":{\"pose2d_string\":\"[0 1 3.14]\"}}], \"additional_information\":\" ****balabla The robot needs the user to assist in completing the task of moving to [0 1 3.14]\"}"
         #json_input = '{goal: {json_input: "{"exception_id":33, "tasks":[{"time_schedule":1263798000000,"task":"move","destination":{"pose2d_string":"[0 1 3.14]"}}, {"time_schedule":2222222222,"task":"move","destination":{"pose2d_string":"[0 1 3.14]"}}], "additional_information":"The robot needs the user to assist in completing the task of moving to [0 1 3.14]"}"}}'
-        result  = test_client_srs_ui_pro_echo_server(json_input)
+        test_client_srs_ui_pro_echo_server(json_input)
         # result format is: {"exception_id":1, "feedback_type ":"unstructured", "content":"Waiting srs_ui_pro"}
         # to restructure the result, and publish it as current_task_info
         #feedback = xmsg.ExecutionFeedback()
