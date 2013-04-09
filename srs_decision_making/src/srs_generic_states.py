@@ -64,9 +64,9 @@ Generic states of interventions for unexpected situation include:
     # get an action sequence from UI and then pass it to the  SRS knowledge service to update the existing action sequence
 
     semantic_dm()
-	# This is the heart of the decision making, it monitor and control task execution based on pre-stored knowledge 
-	
-	
+    # This is the heart of the decision making, it monitor and control task execution based on pre-stored knowledge 
+    
+    
 Others
     initialise()
     #initialisation for a given task
@@ -837,6 +837,13 @@ class remote_user_intervention(smach.State):
         if userdata.semi_autonomous_mode == False:
             return 'give_up'
         
+        # add ui_pri_topic_yes_no here
+        # if "no", return 'give_up'
+        #ui_pro_user_conformation = UI_PRI_TOPICS_YES_NO()
+        rospy.wait_for_service('answer_yes_no')
+        answer_yes_no = rospy.ServiceProxy('answer_yes_no', xsrv.answer_yes_no)
+        if answer_yes_no.answer == "No":
+            return 'give_up'
         
         global current_task_info
         #name of the overall task
@@ -932,7 +939,6 @@ class remote_user_intervention(smach.State):
                 
                 json_decoded = json.loads(self.server_json_result)
                 result = json_decoded['result']
-                print "### result", result
                 # result should be succeeded
                 if result == "succeeded":
                     return 'completed'

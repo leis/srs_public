@@ -17,6 +17,7 @@ class UI_PRI_TOPICS_YES_NO:
         rospy.loginfo("Public topics for UI_PRI_OBJ_SEL ...")
         self.pubUIobjsel = rospy.Publisher('DM_UI/interface_cmd_yes_no',srs_msg.DM_UIobjcom)
         self.user_answer =""
+        self.answer=""
         self.user_comobj_id = 0
         rospy.Subscriber ("DM_UI/interface_cmd_yes_no_response",srs_msg.UI_DMobjresp, self.callbackUIobj)
 
