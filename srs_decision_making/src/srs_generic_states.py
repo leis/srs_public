@@ -834,6 +834,11 @@ class remote_user_intervention(smach.State):
         print ('CHECKING IF USER INTERVENTION IS REQUIRED')
         # check if user intervention is required. 
         # give_up if the task is in fully autonomous mode
+        print ('This is time for us to trigger the user intervention from UI_PRO')
+        
+        rospy.sleep (5)
+        
+        
         if userdata.semi_autonomous_mode == False:
             return 'give_up'
         
@@ -932,7 +937,7 @@ class remote_user_intervention(smach.State):
                 client.send_goal(goal, self.result_callback, self.active_callback, self.feedback_callback)
                 #rospy.sleep(25)
                 
-                timeout = 60
+		timeout = 300
                 while(self.flag != True and timeout > 0):
                     rospy.sleep(1)
                     timeout = timeout - 1
