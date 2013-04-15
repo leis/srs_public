@@ -64,7 +64,7 @@ class select_srs_grasp(smach.State):
 
 class srs_grasp(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['succeeded','not_completed','failed', 'preempted'], 
+        smach.State.__init__(self, outcomes=['succeeded','not_completed','failed', 'preempted','retry'], 
                              input_keys=['grasp_configuration','grasp_configuration_id'], 
                              output_keys=['grasp_categorisation','surface_distance'])
 
@@ -162,9 +162,8 @@ class srs_grasp(smach.State):
 	    else:
                 grasp_trajectory.append(gc);
             
-
             #Move arm to pregrasp->grasp position.
-            arm_handle = sss.move("arm", grasp_trajectory, False, mode='Planned')
+            arm_handle = sss.move("arm", grasp_trajectory, True, mode='Planned')
 
             # wait while movement
             r = rospy.Rate(10)
@@ -177,9 +176,15 @@ class srs_grasp(smach.State):
                     break # stop waiting
                 r.sleep()
 
-            rospy.sleep(2)
-            arm_handle.wait(2)
+            rospy.sleep(6)
+            arm_handle.wait(6)
 
+	    # To deprecate #####################################################
+            #sdh_handle = sss.move("sdh", [list(userdata.grasp_configuration[grasp_configuration_id].sdh_joint_values)]) 
+       	    #sdh_handle.wait() 
+	    #rospy.sleep(10) 
+	    ####################################################################
+	    
             #Close SDH based on the grasp configuration to grasp.
             rospy.loginfo("Waiting for reactive grasping server...")
             client.wait_for_server()
@@ -197,10 +202,7 @@ class srs_grasp(smach.State):
             rospy.loginfo('Closing gripper using reactive grasping')
             client.wait_for_result()
             result = client.get_result()
-	    rospy.sleep(4)
-
-            #TODO: Solve the closing hand sequence. It's closing after the sleep, so the tactil check fails.
-            rospy.sleep(1)
+	    rospy.sleep(6)
 
             #Confirm the grasp based on force feedback
             if not grasping_functions.graspingutils.sdh_tactil_sensor_result():
@@ -211,16 +213,22 @@ class srs_grasp(smach.State):
                 regrasp[3] += 0.07
                 regrasp[5] += 0.07
                 print "to:\n", regrasp
-                
+
+		# To deprecate #################################################
+		#sdh_handle = sss.move("sdh", [list(userdata.grasp_configuration[grasp_configuration_id].sdh_joint_values)]) 
+		#sdh_handle.wait() 
+		#rospy.sleep(10) 
+		################################################################
+
+		
 		goal.target_configuration.data = regrasp
 		client.send_goal(goal)
 
 		rospy.loginfo('Regrasp: Closing gripper using reactive grasping')
 		client.wait_for_result()
 		result = client.get_result()
-		rospy.sleep(4)
+		rospy.sleep(6)
 
-		rospy.sleep(1)
                 if not grasping_functions.graspingutils.sdh_tactil_sensor_result():
                     sss.say(["I can not fix the object correctly!"])
                     raise BadGrasp();
@@ -252,8 +260,8 @@ class srs_grasp(smach.State):
                         break;
             arm_handle = sss.move("arm",postgrasp_trajectory, False, mode='Planned')
             sss.say(["I have grasped the object with success!"])
-            rospy.sleep(2)
-            arm_handle.wait(3)
+            rospy.sleep(6)
+            arm_handle.wait(6)
             
             return 'succeeded'
         except BadGrasp:
@@ -276,7 +284,7 @@ class grasp_base_pose_estimation(smach.State):
     def execute(self, userdata):
         
         self.counter = self.counter + 1
-        if self.counter > 1:
+        if self.counter > 2:
             self.counter = 0
             #only need to retry once
             return 'not_retry'
