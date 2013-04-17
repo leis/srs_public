@@ -1,0 +1,4 @@
+string user
+int16 type # type of request: 0=request for permission; 1=remote operation finished; 2=force
+---
+bool ack # acknowledgment of UI_LOC

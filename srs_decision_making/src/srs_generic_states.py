@@ -905,17 +905,28 @@ class remote_user_intervention(smach.State):
                     sss.say(["I can not finish the task"])
                     sss.say(["Remote Operators are Online Should we ask them for help"])
                     
-                    rospy.wait_for_service('answer_yes_no')
+                    ##rospy.wait_for_service('answer_yes_no')
+                    rospy.wait_for_service('remote_operation')
+                    
                     try:
-                        # call ui_pri_topic_yes_no
-                        # if the answer is "no", then return 'give_up'
-                        answer_yes_no = rospy.ServiceProxy('answer_yes_no', xsrv.answer_yes_no)
-                        resp = answer_yes_no()
-                        if resp.answer == "No":
-                            rospy.loginfo ("the use refused to get any remote assistance...")
+                        ## call ui_pri_topic_yes_no
+                        ## if the answer is "no", then return 'give_up'
+                        #answer_yes_no = rospy.ServiceProxy('answer_yes_no', xsrv.answer_yes_no)
+                        #resp = answer_yes_no()
+                        #if resp.answer == "No":
+                            #rospy.loginfo ("the user refused to get any remote assistance...")
+                            ## in this stage, the anser_yes_no is not used
+                            ## to use it, just make sure the following line is available
+                            ##return 'give_up'
+                            
+                        remote_operation = rospy.ServiceProxy('remote_operation', xsrv.remote_operation)
+                        resp = remote_operation()
+                        if resp.ack is not True:
+                            rospy.loginfo ("the user refused to get any remote assistance...")
                             # in this stage, the anser_yes_no is not used
                             # to use it, just make sure the following line is available
-                            #return 'give_up'
+                            return 'give_up'
+                                
                     except rospy.ServiceException, e:
                         print "Service call failed: %s"%e
                 
