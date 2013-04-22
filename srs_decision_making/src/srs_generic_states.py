@@ -905,10 +905,10 @@ class remote_user_intervention(smach.State):
                     sss.say(["I can not finish the task"])
                     sss.say(["Remote Operators are Online Should we ask them for help"])
                     
-                    ##rospy.wait_for_service('answer_yes_no')
-                    rospy.wait_for_service('remote_operation')
+                    #rospy.wait_for_service('answer_yes_no')
+                    #rospy.wait_for_service('remote_operation')
                     
-                    try:
+                    #try:
                         ## call ui_pri_topic_yes_no
                         ## if the answer is "no", then return 'give_up'
                         #answer_yes_no = rospy.ServiceProxy('answer_yes_no', xsrv.answer_yes_no)
@@ -919,16 +919,16 @@ class remote_user_intervention(smach.State):
                             ## to use it, just make sure the following line is available
                             ##return 'give_up'
                             
-                        remote_operation = rospy.ServiceProxy('remote_operation', xsrv.remote_operation)
-                        resp = remote_operation()
-                        if resp.ack is not True:
-                            rospy.loginfo ("the user refused to get any remote assistance...")
+                        ##remote_operation = rospy.ServiceProxy('remote_operation', xsrv.remote_operation)
+                        ##resp = remote_operation()
+                        ##if resp.ack is not True:
+                            ##rospy.loginfo ("the user refused to get any remote assistance...")
                             # in this stage, the anser_yes_no is not used
                             # to use it, just make sure the following line is available
-                            return 'give_up'
+                            ##return 'give_up'
                                 
-                    except rospy.ServiceException, e:
-                        print "Service call failed: %s"%e
+                    #except rospy.ServiceException, e:
+                        #print "Service call failed: %s"%e
                 
                 goal = echo_server_msg.dm_serverGoal()
                 
@@ -986,11 +986,22 @@ class remote_user_intervention(smach.State):
                 client.send_goal(goal, self.result_callback, self.active_callback, self.feedback_callback)
                 #rospy.sleep(25)
                 
+                _feedback = xmsg.ExecutionFeedback()
+                _feedback.current_state =  self.server_current_status + ": started"
+                _feedback.solution_required = False
+                _feedback.exceptional_case_id = exception_id
+                _feedback.json_feedback = "waiting for the response from the remote operators..."
+                
                 timeout = 300
                 while(self.flag != True and timeout > 0):
                     rospy.sleep(1)
                     timeout = timeout - 1
-                
+                    print "###self.server_json_feedback is : ", self.server_json_feedback #add this line for test, to see if self.server_json_feedback get the result from the dm_server
+                    # publish feedback 1 hz
+                    if self.server_json_feedback != "":
+                        _feedback.json_feedback = self.server_json_feedback
+                    current_task_info._srs_as._as.publish_feedback(_feedback)
+                 
                 if self.server_json_result == "" :
                     rospy.loginfo ("*******")
                     rospy.loginfo ("there is no response from srs_ui_pro, the current intervention action has been given up...")
@@ -998,12 +1009,12 @@ class remote_user_intervention(smach.State):
                     rospy.sleep(3)
                     return self.give_up(the_action_name)
                 
-                _feedback = xmsg.ExecutionFeedback()
-                _feedback.current_state =  self.server_current_status + ": started"
-                _feedback.solution_required = False
-                _feedback.exceptional_case_id = exception_id
-                _feedback.json_feedback = self.server_json_feedback
-                current_task_info._srs_as._as.publish_feedback(_feedback)
+                #_feedback = xmsg.ExecutionFeedback()
+                #_feedback.current_state =  self.server_current_status + ": started"
+                #_feedback.solution_required = False
+                #_feedback.exceptional_case_id = exception_id
+                #_feedback.json_feedback = self.server_json_feedback
+                #current_task_info._srs_as._as.publish_feedback(_feedback)
             
                 json_decoded = json.loads(self.server_json_result)
                 result = json_decoded['result']
